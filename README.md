@@ -13,3 +13,12 @@ The idea behind this project is that ants are able to:
 
 * Python Modules:
     * `pip install numpy`
+    * `pip install matplotlib`
+    
+    
+    
+## Resources:
+* Dynamic Matplotlib
+    - https://block.arch.ethz.ch/blog/2016/08/dynamic-plotting-with-matplotlib/
+* Adding & adjusting grid
+    - https://stackoverflow.com/questions/38973868/adjusting-gridlines-and-ticks-in-matplotlib-imshow

@@ -3,8 +3,35 @@
 # Description: File containing the class for ants
 # Note: Doing some verification and testing in this file
 #       - Git push with Ctrl Shift k
+# Resources:
+#   Dynamic Matplotlib - https://block.arch.ethz.ch/blog/2016/08/dynamic-plotting-with-matplotlib/
+#   Adding a grid - https://stackoverflow.com/questions/38973868/adjusting-gridlines-and-ticks-in-matplotlib-imshow
+
 import numpy as np
 import random as rand
+import matplotlib.pyplot as plt
+import time
+
+
+def display_env(field_data, length, width):
+    img_obj = plt.imshow(field_data, cmap=plt.cm.bwr)
+    img_obj.set_data(field_data)
+
+    ax = plt.gca()      # Putting a grid on the board
+
+    # Major ticks & labels
+    ax.set_xticks(np.arange(0, width, 1))
+    ax.set_yticks(np.arange(0, length, 1))
+
+    # Minor ticks with no labels
+    ax.set_xticks(np.arange(-.5, width, 1), minor=True)
+    ax.set_yticks(np.arange(-.5, length, 1), minor=True)
+
+    ax.grid(which='minor', color='black', linewidth=2)
+
+    plt.draw()
+    plt.pause(1e-19)
+    time.sleep(0.1)
 
 
 class Ants:
@@ -25,14 +52,17 @@ class Ants:
         :return: coordinates
         '''
         move = rand.randint(0, 3)
-        if move == 0:   # North
+        if move == 0:       # North
             self.new_coord[0] += 1
-        elif move == 1:   # East
+        elif move == 1:     # East
             self.new_coord[1] += 1
-        elif move == 2:   # South
+        elif move == 2:     # South
             self.new_coord[0] -= 1
-        else:           # West
+        else:               # West
             self.new_coord[1] -= 1
+
+        # Verify that ant is in bounds:
+
 
         #print("Ant Move Old: {} \t New: {}".format(self.old_coord, self.new_coord))
 
@@ -47,6 +77,7 @@ class Field: # This may be a maze later on.
         self.ant_colony = [Ants(ant_num) for ant_num in range(num_ants)]
         for ant in self.ant_colony:
             self.env[ant.new_coord[0]][ant.new_coord[1]] = 1
+        display_env(self.env, self.length, self.width)   # Show initial State
 
     def time(self):
         for ant in self.ant_colony:
@@ -63,12 +94,14 @@ class Field: # This may be a maze later on.
             ant.old_coord[1] = ant.new_coord[1]     # Update the old coordinates
 
         print(self.env, "\n*****************")     # Show env after the ants have moved.
-
+        display_env(self.env, self.length, self.width)
 
 if __name__ == "__main__":
-    field = Field()
+    field = Field(12, 10, 2)
     print("The Environment:")
     print(field.env)
 
-    for i in range(10):
+    for i in range(30):
         field.time()
+
+    plt.show()      # Keep the image around
