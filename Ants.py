@@ -35,8 +35,9 @@ def display_env(field_data, length, width):
 
 
 class Ants:
-    def __init__(self, ant_num):
+    def __init__(self, ant_num, length, width):
         self.ant_num = ant_num
+        self.lim_coord = [length-1, width-1]
         self.old_coord = [0, 0]
         self.new_coord = [0, 0]
         self.moves = [1, 0, 0, 0]
@@ -62,6 +63,11 @@ class Ants:
             self.new_coord[1] -= 1
 
         # Verify that ant is in bounds:
+        if self.new_coord[0] < 0 or self.new_coord[0] > self.lim_coord[0]\
+                or self.new_coord[1] < 0 or self.new_coord[1] > self.lim_coord[1]:
+            print("{} Out of bounds!".format(self.new_coord))
+            self.new_coord[0] = self.old_coord[0]       # Reset coordinates
+            self.new_coord[1] = self.old_coord[1]
 
 
         #print("Ant Move Old: {} \t New: {}".format(self.old_coord, self.new_coord))
@@ -74,7 +80,7 @@ class Field: # This may be a maze later on.
         self.colony = [0, 0]                                    # Top left corner
         self.food_coord = [self.length - 1, self.width - 1]     # Bottom right corner for now
         self.env = np.zeros((self.length, self.width))          # Environment for ants and food
-        self.ant_colony = [Ants(ant_num) for ant_num in range(num_ants)]
+        self.ant_colony = [Ants(ant_num, self.length, self.width) for ant_num in range(num_ants)]
         for ant in self.ant_colony:
             self.env[ant.new_coord[0]][ant.new_coord[1]] = 1
         display_env(self.env, self.length, self.width)   # Show initial State
@@ -97,7 +103,7 @@ class Field: # This may be a maze later on.
         display_env(self.env, self.length, self.width)
 
 if __name__ == "__main__":
-    field = Field(12, 10, 2)
+    field = Field(12, 10, 5)
     print("The Environment:")
     print(field.env)
 
