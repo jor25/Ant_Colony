@@ -22,3 +22,7 @@ The idea behind this project is that ants are able to:
     - https://block.arch.ethz.ch/blog/2016/08/dynamic-plotting-with-matplotlib/
 * Adding & adjusting grid
     - https://stackoverflow.com/questions/38973868/adjusting-gridlines-and-ticks-in-matplotlib-imshow
+* Multiple Charts
+    - https://stackoverflow.com/questions/46615554/how-to-display-multiple-images-in-one-figure-correctly    
+    
+    
