@@ -18,9 +18,15 @@ import matplotlib.pyplot as plt
 import time
 import Walls as w
 
+# Convert these globals to system arguments later on
+LENGTH = 10
+WIDTH = 10
+NUM_ANTS = 65
+PT_OBS = 20
 
-walls = w.Wall()
 
+# Initialize the wall class and the matplotlib figure
+walls = w.Wall(LENGTH, WIDTH, PT_OBS)
 fig = plt.figure()
 
 
@@ -200,62 +206,6 @@ class Ants:
 
         return homing_moves
 
-    def go_home_h2(self, turn_moves, ph_field):  # Heuristic to head back home
-        #home = [0, 0]
-        temp = [0, 0]
-        temp[0] = self.new_coord[0]
-        temp[1] = self.new_coord[1]
-        temp2 = [0, 0]
-        homing_moves = []
-
-        for move in turn_moves:
-            if move == 'N':  # North
-                temp2[0] = temp[0] - 1
-                temp2[1] = temp[1]
-
-                x, y = self.get_distance(temp, self.home)
-                x2, y2 = self.get_distance(temp2, self.home)
-
-
-                if ph_field[temp2[0]][temp2[1]] >= 0:
-                    homing_moves.append(move)
-
-                #self.new_coord[0] -= 1
-            elif move == 'E':  # East
-                temp2[0] = temp[0]
-                temp2[1] = temp[1] + 1
-
-                x, y = self.get_distance(temp, self.home)
-                x2, y2 = self.get_distance(temp2, self.home)
-
-
-                if ph_field[temp2[0]][temp2[1]] >= 0:
-                    homing_moves.append(move)
-                #self.new_coord[1] += 1
-            elif move == 'S':  # South
-                temp2[0] = temp[0] + 1
-                temp2[1] = temp[1]
-
-                x, y = self.get_distance(temp, self.home)
-                x2, y2 = self.get_distance(temp2, self.home)
-
-
-                if ph_field[temp2[0]][temp2[1]] >= 0:
-                    homing_moves.append(move)
-                    #self.new_coord[0] += 1
-            else:  # West
-                temp2[0] = temp[0]
-                temp2[1] = temp[1] - 1
-
-                x, y = self.get_distance(temp, self.home)
-                x2, y2 = self.get_distance(temp2, self.home)
-
-
-                if ph_field[temp2[0]][temp2[1]] >= 0:
-                    homing_moves.append(move)
-                    #self.new_coord[1] -= 1
-
-        return homing_moves
 
 
     def make_move(self, ph_field, food_coord):
@@ -398,7 +348,7 @@ class Field: # This may be a maze later on.
 
 
 if __name__ == "__main__":
-    field = Field(10, 10, 65)        # Field of dimension y=12, x=10. Number of ants = 5
+    field = Field(LENGTH, WIDTH, NUM_ANTS)#10, 10, 65)        # Field of dimension y=12, x=10. Number of ants = 5
     #print("The Environment:")
     #print(field.env)
 
