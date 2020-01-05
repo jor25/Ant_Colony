@@ -30,24 +30,49 @@ walls = w.Wall(LENGTH, WIDTH, PT_OBS)
 fig = plt.figure()
 
 
-def display_env_ph(field_data, ph_data, length, width, food_col, num_ants, step):  # Function that displays two charts.
-    fig.add_subplot(1, 2, 1)                    # Place environment chart on left
+def display_env_ph(field_data, ph_data, length, width, food_col, num_ants, step):
+    """
+    Display two charts, the ant environment(left), and the pheromone environment(right).
+    :param field_data: 2D numpy array provided from the Field class for ants and obstacles.
+    :param ph_data: 2D numpy array provided from the Field class for pheromones.
+    :param length: Integer height of the plot.
+    :param width: Integer width of the plot.
+    :param food_col: Integer food collected from Field class.
+    :param num_ants: Integer number of ants from Field class colony.
+    :param step: Integer number of steps taken from Field class.
+    :return: N/A
+    """
+    # Place environment chart on left
+    fig.add_subplot(1, 2, 1)
     display_env(field_data, length, width, food_col)
-    fig.add_subplot(1, 2, 2)                    # Place pheromones chart on right
+
+    # Place pheromones chart on right
+    fig.add_subplot(1, 2, 2)
     display_pheromones(ph_data, length, width)
+
+    # Place the title of the plot with dynamic details
     fig.suptitle('Ant Colony Algorithm\nAnt #: {}\nStep #: {}'.format(num_ants, step), fontsize=15)
 
-
+    # Draw the plots and wait.
     plt.draw()
     plt.pause(1e-25)
-    time.sleep(0.1)
+    time.sleep(0.01)
 
 
 def display_pheromones(ph_data, length, width):
+    """
+    Displays the pheromone environment. This allows us to see the pheromones being dropped.
+    :param ph_data: 2D numpy array from Field class for pheromones. (display_env_ph)
+    :param length: Integer height of the plot. (display_env_ph)
+    :param width: Integer width of the plot. (display_env_ph)
+    :return: N/A
+    """
+    # Set the ph data on the plot and provide titles
     im2 = plt.imshow(ph_data)
     im2.set_data(ph_data)
     ax2 = plt.gca()
     ax2.set_title("Pheromone Env")
+
     # Major ticks & labels
     ax2.set_xticks(np.arange(0, width, 1))
     ax2.set_yticks(np.arange(0, length, 1))
@@ -56,15 +81,27 @@ def display_pheromones(ph_data, length, width):
     ax2.set_xticks(np.arange(-.5, width, 1), minor=True)
     ax2.set_yticks(np.arange(-.5, length, 1), minor=True)
 
+    # Set line width for the minor ticks
     ax2.grid(which='minor', color='black', linewidth=2)
 
 
 def display_env(field_data, length, width, food_col):
+    """
+    Display the ant's environment. This allows us to see where all the ants are moving.
+    :param field_data: 2D numpy array provided from Field class for ants and obstacles. (display_env_ph)
+    :param length: Integer height of the plot. (display_env_ph)
+    :param width: Integer width of the plot. (display_env_ph)
+    :param food_col: Integer food collected from Field class. (display_env_ph)
+    :return: N/A
+    """
+    # Select the color set up for display env.
     img_obj = plt.imshow(field_data, cmap=plt.cm.bwr)
     img_obj.set_data(field_data)
 
-    ax = plt.gca()      # Putting a grid on the board
+    # Putting a grid on the board with dynamic labels
+    ax = plt.gca()
     ax.set_title("ANT ENV\nFood Collected: {}".format(food_col))
+
     # Major ticks & labels
     ax.set_xticks(np.arange(0, width, 1))
     ax.set_yticks(np.arange(0, length, 1))
@@ -73,6 +110,7 @@ def display_env(field_data, length, width, food_col):
     ax.set_xticks(np.arange(-.5, width, 1), minor=True)
     ax.set_yticks(np.arange(-.5, length, 1), minor=True)
 
+    # Set line width for the minor ticks
     ax.grid(which='minor', color='black', linewidth=2)
 
 
