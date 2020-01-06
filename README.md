@@ -29,7 +29,9 @@ The idea behind this project is that ants are able to:
 * Make global variables system arguments
 * Have ants collect path steps - this is maybe...
 * New heuristic to get ants out of death circle...
+    * implement ant lifespan
 * Implement maze function in the Wall class
+* Allow ants to move diagonally (8 degrees of motion instead of 4)
     
 ## Resources:
 * Dynamic Matplotlib
