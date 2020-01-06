@@ -21,7 +21,7 @@ import Walls as w
 # Convert these globals to system arguments later on
 LENGTH = 10
 WIDTH = 10
-NUM_ANTS = 65
+NUM_ANTS = 50
 PT_OBS = 20
 
 

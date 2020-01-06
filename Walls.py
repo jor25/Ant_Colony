@@ -20,14 +20,14 @@ class Wall:
 
         # Take the smaller of the 2, sub 2
         if length > width:
-            self.cap = width - 2
+            self.cap = width - 1
         else:
-            self.cap = length - 2
+            self.cap = length - 1
 
         # Check to see how many potential obstacles to include
         # Only collect the unique numbers
         if self.pt_obs > 0:
-            self.blocks = np.random.randint(2, self.cap, size=(self.pt_obs, 2)).tolist()
+            self.blocks = np.random.randint(1, self.cap, size=(self.pt_obs, 2)).tolist()
             arr, uniq_cnt = np.unique(self.blocks, axis=0, return_counts=True)
             uniq_arr = arr[uniq_cnt == 1]
             self.blocks = uniq_arr.tolist()

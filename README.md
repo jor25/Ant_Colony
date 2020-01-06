@@ -18,8 +18,18 @@ The idea behind this project is that ants are able to:
     * `pip install numpy`
     * `pip install matplotlib`
     
+## Notes:
+* Modify global variables in Ants.py to customize runs.
+* Watch how the ants run once they find the food source.
+
 ## How to run: 
-    * `python Ants.py`
+* `python Ants.py`
+    
+## Future Steps:
+* Make global variables system arguments
+* Have ants collect path steps - this is maybe...
+* New heuristic to get ants out of death circle...
+* Implement maze function in the Wall class
     
 ## Resources:
 * Dynamic Matplotlib
