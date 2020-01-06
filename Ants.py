@@ -21,11 +21,11 @@ import time
 import Walls as w
 
 # Convert these globals to system arguments later on
-LENGTH = 15
-WIDTH = 15
-NUM_ANTS = 150
-PT_OBS = 20
-
+LENGTH = 20
+WIDTH = 20
+NUM_ANTS = 500
+PT_OBS = 60
+STEPS = 1500
 
 # Initialize the wall class
 walls = w.Wall(LENGTH, WIDTH, PT_OBS)
@@ -439,8 +439,8 @@ if __name__ == "__main__":
     # Initialize Matplotlib figure
     fig = plt.figure()
 
-    # Loop through a time span of 500 steps
-    for i in range(500):
+    # Loop through a time span of steps
+    for i in range(STEPS):
         if i == 0:      # Only for the first step, significant speed up.
             # Initialize environment for first plot
             g1 = fig.add_subplot(1, 2, 1)
