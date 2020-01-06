@@ -10,6 +10,13 @@ import numpy as np
 
 class Wall:
     def __init__(self, length, width, pt_obs=0):
+        """
+        Initialize random wall block options.
+        :param length: Integer height of the plot.
+        :param width: Integer width of the plot.
+        :param pt_obs: Integer number of potential objects.
+        """
+        # Initialize potential objects number
         self.pt_obs = pt_obs
 
         # Take the smaller of the 2, sub 2
@@ -18,9 +25,8 @@ class Wall:
         else:
             self.cap = length - 2
 
-        #print(self.pt_obs)
-
         # Check to see how many potential obstacles to include
+        # Only collect the unique numbers
         if self.pt_obs > 0:
             self.blocks = np.random.randint(2, self.cap, size=(self.pt_obs, 2)).tolist()
             arr, uniq_cnt = np.unique(self.blocks, axis=0, return_counts=True)
