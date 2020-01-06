@@ -25,6 +25,9 @@ The idea behind this project is that ants are able to:
 ## How to run: 
 * `python Ants.py`
     
+## Updates:
+* Fixed matplotlib performance issue. It was due to multi-subplot initializations.
+
 ## Future Steps:
 * Make global variables system arguments
 * Have ants collect path steps - this is maybe...
@@ -51,4 +54,7 @@ The idea behind this project is that ants are able to:
     - https://docs.scipy.org/doc/numpy-1.15.1/reference/generated/numpy.random.randint.html
 * Convert to list
     - https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.tolist.html
-    
+* Matplotlib vmin & vmax
+    - https://matplotlib.org/3.1.1/api/_as_gen/matplotlib.pyplot.imshow.html
+* Matplot lib slowdown via imshow
+    - https://stackoverflow.com/questions/28692246/matplotlib-draw-is-slow-in-loop-when-it-showing-an-image

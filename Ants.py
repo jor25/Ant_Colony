@@ -11,6 +11,8 @@
 #   Random weighted choice - https://pynative.com/python-random-choice/
 #   Vectorized add 4 to all walls - https://stackoverflow.com/questions/55176269/list-of-xy-coordinates-to-matrix
 #                                 - https://docs.scipy.org/doc/numpy/reference/generated/numpy.ufunc.at.html
+#   Matplotlib vmin & vmax - https://matplotlib.org/3.1.1/api/_as_gen/matplotlib.pyplot.imshow.html
+#   Matplot lib slowdown via imshow - https://stackoverflow.com/questions/28692246/matplotlib-draw-is-slow-in-loop-when-it-showing-an-image
 
 import numpy as np
 import random as rand
@@ -19,18 +21,17 @@ import time
 import Walls as w
 
 # Convert these globals to system arguments later on
-LENGTH = 10
-WIDTH = 10
-NUM_ANTS = 50
+LENGTH = 15
+WIDTH = 15
+NUM_ANTS = 150
 PT_OBS = 20
 
 
-# Initialize the wall class and the matplotlib figure
+# Initialize the wall class
 walls = w.Wall(LENGTH, WIDTH, PT_OBS)
-fig = plt.figure()
 
 
-def display_env_ph(field_data, ph_data, length, width, food_col, num_ants, step):
+def display_env_ph(field_data, ph_data, length, width, food_col, num_ants, step, fig, img1, img2, g1, g2):
     """
     Display two charts, the ant environment(left), and the pheromone environment(right).
     :param field_data: 2D numpy array provided from the Field class for ants and obstacles.
@@ -40,15 +41,18 @@ def display_env_ph(field_data, ph_data, length, width, food_col, num_ants, step)
     :param food_col: Integer food collected from Field class.
     :param num_ants: Integer number of ants from Field class colony.
     :param step: Integer number of steps taken from Field class.
+    :param fig: Matplotlib figure
+    :param img1: Image show object for environment
+    :param img2: Image show object for pheromone environment
+    :param g1: Matplotlib subplot for environment
+    :param g2: Matplotlib subplot for pheromone environment
     :return: N/A
     """
-    # Place environment chart on left
-    fig.add_subplot(1, 2, 1)
-    display_env(field_data, length, width, food_col)
+    # Display environment chart on left
+    display_env(field_data, length, width, food_col, img1, g1)
 
-    # Place pheromones chart on right
-    fig.add_subplot(1, 2, 2)
-    display_pheromones(ph_data, length, width)
+    # Display pheromones chart on right
+    display_pheromones(ph_data, length, width, img2, g2)
 
     # Place the title of the plot with dynamic details
     fig.suptitle('Ant Colony Algorithm\nAnt #: {}\nStep #: {}'.format(num_ants, step), fontsize=15)
@@ -59,18 +63,18 @@ def display_env_ph(field_data, ph_data, length, width, food_col, num_ants, step)
     time.sleep(0.1)
 
 
-def display_pheromones(ph_data, length, width):
+def display_pheromones(ph_data, length, width, im2, ax2):
     """
     Displays the pheromone environment. This allows us to see the pheromones being dropped.
     :param ph_data: 2D numpy array from Field class for pheromones. (display_env_ph)
     :param length: Integer height of the plot. (display_env_ph)
     :param width: Integer width of the plot. (display_env_ph)
+    :param im2: (img2) Image show object for pheromone environment
+    :param ax2: (g2) Matplotlib subplot for pheromone environment
     :return: N/A
     """
     # Set the ph data on the plot and provide titles
-    im2 = plt.imshow(ph_data)
     im2.set_data(ph_data)
-    ax2 = plt.gca()
     ax2.set_title("Pheromone Env")
 
     # Major ticks & labels
@@ -85,21 +89,19 @@ def display_pheromones(ph_data, length, width):
     ax2.grid(which='minor', color='black', linewidth=2)
 
 
-def display_env(field_data, length, width, food_col):
+def display_env(field_data, length, width, food_col, img_obj, ax):
     """
     Display the ant's environment. This allows us to see where all the ants are moving.
     :param field_data: 2D numpy array provided from Field class for ants and obstacles. (display_env_ph)
     :param length: Integer height of the plot. (display_env_ph)
     :param width: Integer width of the plot. (display_env_ph)
     :param food_col: Integer food collected from Field class. (display_env_ph)
+    :param img_obj: (img1) Image show object for environment
+    :param ax: (g1) Matplotlib subplot for environment
     :return: N/A
     """
-    # Select the color set up for display env.
-    img_obj = plt.imshow(field_data, cmap=plt.cm.bwr)
+    # Set data for field env and title
     img_obj.set_data(field_data)
-
-    # Putting a grid on the board with dynamic labels
-    ax = plt.gca()
     ax.set_title("ANT ENV\nFood Collected: {}".format(food_col))
 
     # Major ticks & labels
@@ -133,6 +135,7 @@ class Ants:
         self.old_coord = [col_coord[0], col_coord[1]]       # Where the ant was
         self.new_coord = [col_coord[0], col_coord[1]]       # Where the ant will move to
         self.pheromone_trail = []                           # List of coordinates length 5 - currently not in use
+        self.no_go = []                                     # List of coordinates NOT to go to again.
         self.pheromone_drop = int((length + width)*3)       # How much pheromone to drop - initializing
         self.has_food = False                               # If the ant has food
 
@@ -149,7 +152,8 @@ class Ants:
 
         # Check if the tile to the South is valid, if it is then add to valid options
         if self.new_coord[0] + 1 <= self.lim_coord[0] and \
-                [self.new_coord[0] + 1, self.new_coord[1]] not in walls.blocks:         # In bounds SOUTH
+                [self.new_coord[0] + 1, self.new_coord[1]] not in walls.blocks and \
+                [self.new_coord[0] + 1, self.new_coord[1]] not in self.no_go:         # In bounds SOUTH
             turn_moves.append('S')
             ops.add('S')
             weights.append(self.follow_ph(self.new_coord[0] + 1, self.new_coord[1], ph_field))
@@ -158,7 +162,8 @@ class Ants:
 
         # Check if the tile to the North is valid, if it is then add to valid options
         if self.new_coord[0] - 1 >= 0 and \
-                [self.new_coord[0] - 1, self.new_coord[1]] not in walls.blocks:         # In bounds NORTH
+                [self.new_coord[0] - 1, self.new_coord[1]] not in walls.blocks and \
+                [self.new_coord[0] - 1, self.new_coord[1]] not in self.no_go:         # In bounds NORTH
             turn_moves.append('N')
             ops.add('N')
             weights.append(self.follow_ph(self.new_coord[0] - 1, self.new_coord[1], ph_field))
@@ -167,7 +172,8 @@ class Ants:
 
         # Check if the tile to the East is valid, if it is then add to valid options
         if self.new_coord[1] + 1 <= self.lim_coord[1] and \
-                [self.new_coord[0], self.new_coord[1] + 1] not in walls.blocks:         # In bounds EAST
+                [self.new_coord[0], self.new_coord[1] + 1] not in walls.blocks and \
+                [self.new_coord[0], self.new_coord[1] + 1] not in self.no_go:         # In bounds EAST
             turn_moves.append('E')
             ops.add('E')
             weights.append(self.follow_ph(self.new_coord[0], self.new_coord[1] + 1, ph_field))
@@ -176,7 +182,8 @@ class Ants:
 
         # Check if the tile to the West is valid, if it is then add to valid options
         if self.new_coord[1] - 1 >= 0 and \
-                [self.new_coord[0], self.new_coord[1] - 1] not in walls.blocks:         # In bounds WEST
+                [self.new_coord[0], self.new_coord[1] - 1] not in walls.blocks and \
+                [self.new_coord[0], self.new_coord[1] - 1] not in self.no_go:         # In bounds WEST
             turn_moves.append('W')
             ops.add('W')
             weights.append(self.follow_ph(self.new_coord[0], self.new_coord[1] - 1, ph_field))
@@ -222,7 +229,7 @@ class Ants:
         Using a heuristic function to head back home, go for moves that decrease distance from home
         :param turn_moves: list of valid move options
         :param ph_field: 2D numpy array of pheromones
-        :return: homing_moves
+        :return: homing_moves (list strings)
         """
         temp = [0, 0]                       # Initialize temp
         temp2 = [0, 0]                      # Initialize 2nd temp
@@ -303,7 +310,9 @@ class Ants:
             else:
                 # Follow the lowest pheromone this time
                 move = turn_moves[np.argmin(weights)]
-
+                # Add current square to a list of no go coords
+                if self.new_coord not in self.no_go:    # Unique coordinate
+                    self.no_go.append(self.new_coord)   # Current Coordinates
         # Adjust to select the correct move
         if move == 'N':         # North
             self.new_coord[0] -= 1
@@ -350,15 +359,22 @@ class Field:
         for ant in self.ant_colony:
             self.env[ant.new_coord[0]][ant.new_coord[1]] = 1
 
-        # Display the initial state of the field and ph environment
-        display_env_ph(self.env, self.ph_env, self.length, self.width, self.food_collected, self.num_ants, step=0)
-
-    def time(self, step):
+    def time(self, step, fig, img1, img2, g1, g2):
         """
         At every time interval, all ants must update their moves and pheromones will decay.
         :param step: Integer current steps.
+        :param fig: Matplotlib figure
+        :param img1: Image show object for environment
+        :param img2: Image show object for pheromone environment
+        :param g1: Matplotlib subplot for environment
+        :param g2: Matplotlib subplot for pheromone environment
         :return: N/A
         """
+        # Display the initial state of the field and ph environment
+        if step == 0:
+            display_env_ph(self.env, self.ph_env, self.length, self.width, self.food_collected, self.num_ants, 0, fig, img1,
+                           img2, g1, g2)
+
         # For all the ants in the colony
         for ant in self.ant_colony:
             ant.make_move(self.ph_env, self.food_coord)         # Move each of the ants
@@ -409,7 +425,7 @@ class Field:
         self.ph_env[sub_ind] -= 1     # Subtract 1 from each of these indexes
 
         # Call the display environments function
-        display_env_ph(self.env, self.ph_env, self.length, self.width, self.food_collected, self.num_ants, step)
+        display_env_ph(self.env, self.ph_env, self.length, self.width, self.food_collected, self.num_ants, step, fig, img1, img2, g1, g2)
 
         # Error Check
         #print(self.env, "\n*****************")                                # Show env after the ants have moved.
@@ -420,9 +436,21 @@ if __name__ == "__main__":
     # Initialize a field object
     field = Field(LENGTH, WIDTH, NUM_ANTS)
 
+    # Initialize Matplotlib figure
+    fig = plt.figure()
+
     # Loop through a time span of 500 steps
     for i in range(500):
-        field.time(i)   # Update the field with every time step
+        if i == 0:      # Only for the first step, significant speed up.
+            # Initialize environment for first plot
+            g1 = fig.add_subplot(1, 2, 1)
+            img1 = plt.imshow(field.env, cmap=plt.cm.bwr)
+
+            # Initialize pheromone environment for 2nd plot
+            g2 = fig.add_subplot(1, 2, 2)
+            img2 = plt.imshow(field.ph_env, vmin=0, vmax=int((field.length + field.width)*3))
+
+        field.time(i, fig, img1, img2, g1, g2)   # Update the field with every time step
 
     # Keep the image around
     plt.show()
