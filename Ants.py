@@ -55,8 +55,8 @@ def display_env_ph(field_data, ph_data, length, width, food_col, num_ants, step)
 
     # Draw the plots and wait.
     plt.draw()
-    plt.pause(1e-25)
-    time.sleep(0.01)
+    plt.pause(1e-15)
+    time.sleep(0.1)
 
 
 def display_pheromones(ph_data, length, width):
@@ -114,89 +114,126 @@ def display_env(field_data, length, width, food_col):
     ax.grid(which='minor', color='black', linewidth=2)
 
 
+"""
+Ant Class
+"""
 class Ants:
     def __init__(self, ant_num, length, width, col_coord):
-        self.ant_num = ant_num
-        self.life_span = 500        # May adjust this later
-        self.lim_coord = [length-1, width-1]
-        self.home = [col_coord[0], col_coord[1]]
-        self.old_coord = [col_coord[0], col_coord[1]]
-        self.new_coord = [col_coord[0], col_coord[1]]
-        self.moves = ['N','E','S','W']
-        self.pheromone_trail = []    # List of coordinates length 5
-        self.pheromone_drop = int((length + width)*3)     # average of length and width
-        self.has_food = False
+        """
+        Initialize individual ants
+        :param ant_num: Integer the ant's number
+        :param length: Integer height of the plot.
+        :param width: Integer width of the plot.
+        :param col_coord: Coordinates of the ant colony - where ants start out.
+        """
+        self.ant_num = ant_num                              # Set the ant number
+        self.life_span = 500                                # How long an ant survives - Currently not in use
+        self.lim_coord = [length-1, width-1]                # Coordinate limits to prevent ants from leaving environment
+        self.home = [col_coord[0], col_coord[1]]            # This is the ant colony's coordinates
+        self.old_coord = [col_coord[0], col_coord[1]]       # Where the ant was
+        self.new_coord = [col_coord[0], col_coord[1]]       # Where the ant will move to
+        self.pheromone_trail = []                           # List of coordinates length 5 - currently not in use
+        self.pheromone_drop = int((length + width)*3)       # How much pheromone to drop - initializing
+        self.has_food = False                               # If the ant has food
 
     def look_ahead(self, ph_field, food_coord):   # See where ant can go
+        """
+        Identify where the ant is allowed to move, it can't go through obstacles or limits.
+        :param ph_field: Pheromones on the field
+        :param food_coord: The coordinates of the food - not used directly, we just know if the next one is food.
+        :return: turn_moves (list of valid moves), ops (set of valid moves), weights (list of floats)
+        """
         turn_moves = []     # List of valid moves
         weights = []        # Weights of valid moves
         ops = set()         # Set of valid moves
-        if self.new_coord[0] + 1 <= self.lim_coord[0] and [self.new_coord[0] + 1, self.new_coord[1]] not in walls.blocks:      # In bounds SOUTH
+
+        # Check if the tile to the South is valid, if it is then add to valid options
+        if self.new_coord[0] + 1 <= self.lim_coord[0] and \
+                [self.new_coord[0] + 1, self.new_coord[1]] not in walls.blocks:         # In bounds SOUTH
             turn_moves.append('S')
             ops.add('S')
-            weights.append(self.follow_ph(self.new_coord[0] + 1, self.new_coord[1], ph_field, turn_moves, 'S'))
+            weights.append(self.follow_ph(self.new_coord[0] + 1, self.new_coord[1], ph_field))
             if np.array_equal([self.new_coord[0] + 1, self.new_coord[1]], food_coord):  # if food coordinate
-                #return ['S'], set('S'), [1.0]   # Give me back the exact move to go to if food is there.
                 weights[-1] = weights[-1] * 10      # Most recently added element * 10
 
-        if self.new_coord[0] - 1 >= 0 and [self.new_coord[0] - 1, self.new_coord[1]] not in walls.blocks:                      # In bounds NORTH
+        # Check if the tile to the North is valid, if it is then add to valid options
+        if self.new_coord[0] - 1 >= 0 and \
+                [self.new_coord[0] - 1, self.new_coord[1]] not in walls.blocks:         # In bounds NORTH
             turn_moves.append('N')
             ops.add('N')
-            weights.append(self.follow_ph(self.new_coord[0] - 1, self.new_coord[1], ph_field, turn_moves, 'N'))
+            weights.append(self.follow_ph(self.new_coord[0] - 1, self.new_coord[1], ph_field))
             if np.array_equal([self.new_coord[0] - 1, self.new_coord[1]], food_coord):  # if food coordinate
-                #return ['N'], set('N'), [1.0]   # Give me back the exact move to go to if food is there.
                 weights[-1] = weights[-1] * 10      # Most recently added element * 10
 
-        if self.new_coord[1] + 1 <= self.lim_coord[1] and [self.new_coord[0], self.new_coord[1] + 1] not in walls.blocks:      # In bounds EAST
+        # Check if the tile to the East is valid, if it is then add to valid options
+        if self.new_coord[1] + 1 <= self.lim_coord[1] and \
+                [self.new_coord[0], self.new_coord[1] + 1] not in walls.blocks:         # In bounds EAST
             turn_moves.append('E')
             ops.add('E')
-            weights.append(self.follow_ph(self.new_coord[0], self.new_coord[1] + 1, ph_field, turn_moves, 'E'))
+            weights.append(self.follow_ph(self.new_coord[0], self.new_coord[1] + 1, ph_field))
             if np.array_equal([self.new_coord[0], self.new_coord[1] + 1], food_coord):  # if food coordinate
-                #return ['E'], set('E'), [1.0]   # Give me back the exact move to go to if food is there.
                 weights[-1] = weights[-1] * 10  # Most recently added element * 10
 
-        if self.new_coord[1] - 1 >= 0 and [self.new_coord[0], self.new_coord[1] - 1] not in walls.blocks:                      # In bounds WEST
+        # Check if the tile to the West is valid, if it is then add to valid options
+        if self.new_coord[1] - 1 >= 0 and \
+                [self.new_coord[0], self.new_coord[1] - 1] not in walls.blocks:         # In bounds WEST
             turn_moves.append('W')
             ops.add('W')
-            weights.append(self.follow_ph(self.new_coord[0], self.new_coord[1] - 1, ph_field, turn_moves, 'W'))
+            weights.append(self.follow_ph(self.new_coord[0], self.new_coord[1] - 1, ph_field))
             if np.array_equal([self.new_coord[0], self.new_coord[1] - 1], food_coord):  # if food coordinate
-                #return ['W'], set('W'), [1.0]   # Give me back the exact move to go to if food is there.
                 weights[-1] = weights[-1] * 10  # Most recently added element * 10
 
-        if not np.all(weights):    # if not all the same
-            # Triple the largest weight
+        # If not all the same, then triple the largest weight
+        if not np.all(weights):
             greedy = np.argmax(weights)
             weights[greedy] = weights[greedy] * 3
 
-        div = sum(weights)  # Used to convert all weights to probabilities
-
-        #print(greedy)
-        #print(weights)
+        # Convert all weights to probabilities
+        div = sum(weights)
         weights = [weight / div for weight in weights]
-        #print("weights {}\t\tlen weights {}\nmoves: {}".format(weights, len(weights), turn_moves))
-        return turn_moves, ops, weights   # Move options for specific grid
 
+        # Move options for specific grid
+        return turn_moves, ops, weights
 
-    def follow_ph(self, coord1, coord2, ph_field, turn_moves, move):
+    def follow_ph(self, coord1, coord2, ph_field):
+        """
+        Collect the ph value at the specific grid move, add 1 to it to keep it from being 0
+        :param coord1: integer
+        :param coord2: integer
+        :param ph_field: 2D numpy array of ph values
+        :return: ph_val + 1 (integer)
+        """
         ph_val = ph_field[coord1][coord2]
         return ph_val + 1
 
-
     def get_distance(self, temp_coord, home_coord):
+        """
+        Get the absolute distance for x and y from home coord and current coord
+        :param temp_coord: list of 2 coordinates
+        :param home_coord: list of 2 coordinates
+        :return: x (int), y (int) distances
+        """
         x = abs(temp_coord[0] - home_coord[0])
         y = abs(temp_coord[1] - home_coord[1])
         return x, y
 
-    def go_home(self, turn_moves, ph_field):  # Heuristic to head back home
-        #home = [0, 0]
-        temp = [0, 0]
-        temp[0] = self.new_coord[0]
-        temp[1] = self.new_coord[1]
-        temp2 = [0, 0]
-        homing_moves = []
+    def go_home(self, turn_moves, ph_field):
+        """
+        Using a heuristic function to head back home, go for moves that decrease distance from home
+        :param turn_moves: list of valid move options
+        :param ph_field: 2D numpy array of pheromones
+        :return: homing_moves
+        """
+        temp = [0, 0]                       # Initialize temp
+        temp2 = [0, 0]                      # Initialize 2nd temp
+        homing_moves = []                   # Initialize homing moves
+
+        temp[0] = self.new_coord[0]         # Set temp[0] to new coord
+        temp[1] = self.new_coord[1]         # Set temp[1] to new coord
 
         for move in turn_moves:
-            if move == 'N':  # North
+            # Move north and collect the distance differences
+            if move == 'N':
                 temp2[0] = temp[0] - 1
                 temp2[1] = temp[1]
 
@@ -207,8 +244,8 @@ class Ants:
                     if ph_field[temp2[0]][temp2[1]] >= 0:
                         homing_moves.append(move)
 
-                #self.new_coord[0] -= 1
-            elif move == 'E':  # East
+            # Move east and collect the distance differences
+            elif move == 'E':
                 temp2[0] = temp[0]
                 temp2[1] = temp[1] + 1
 
@@ -218,8 +255,9 @@ class Ants:
                 if x2 < x or y2 < y:
                     if ph_field[temp2[0]][temp2[1]] >= 0:
                         homing_moves.append(move)
-                #self.new_coord[1] += 1
-            elif move == 'S':  # South
+
+            # Move south and collect the distance differences
+            elif move == 'S':
                 temp2[0] = temp[0] + 1
                 temp2[1] = temp[1]
 
@@ -229,8 +267,9 @@ class Ants:
                 if x2 < x or y2 < y:
                     if ph_field[temp2[0]][temp2[1]] >= 0:
                         homing_moves.append(move)
-                    #self.new_coord[0] += 1
-            else:  # West
+
+            # Move west and collect the distance differences
+            else:
                 temp2[0] = temp[0]
                 temp2[1] = temp[1] - 1
 
@@ -240,58 +279,60 @@ class Ants:
                 if x2 < x or y2 < y:
                     if ph_field[temp2[0]][temp2[1]] >= 0:
                         homing_moves.append(move)
-                    #self.new_coord[1] -= 1
 
+        # Moves ['N', 'E', 'S', 'W']
         return homing_moves
 
-
-
     def make_move(self, ph_field, food_coord):
-
+        """
+        Ant makes a move based on ph_field and food coord. If the ant has food head home.
+        :param ph_field: 2D numpy array of pheromone values
+        :param food_coord: Food coordinates
+        :return: N/A
+        """
         turn_moves, ops, weights = self.look_ahead(ph_field, food_coord)
-        #print(turn_moves)
         move = rand.choices(turn_moves, weights, k=1)[0]
 
-        if self.has_food:   # if ant has food, then head home. Need to pheromone_drop pheromones...
-            #print(turn_moves)
-            home_moves = self.go_home(ops, ph_field)   # Adjust turn moves
-            #print(turn_moves)
-            if len(home_moves) > 0: # Verify there are move options
+        # if ant has food, then head home. Need to pheromone_drop pheromones...
+        if self.has_food:
+            # Adjust turn moves
+            home_moves = self.go_home(ops, ph_field)
+            if len(home_moves) > 0:
+                # Verify there are move options, select randomly
                 move = rand.choices(home_moves, k=1)[0]
             else:
-                # Drop negative pheromone...
-                '''
-                self.pheromone_drop = self.pheromone_drop * -1  # Negate the drop for a turn.
-                home_moves = self.go_home_h2(ops, ph_field)     # Select non negative one
-                move = rand.choices(home_moves, k=1)[0]    # follow highest pheromones
-                '''
+                # Follow the lowest pheromone this time
                 move = turn_moves[np.argmin(weights)]
-        #move_index = rand.randint(0, len(turn_moves)-1)
-        #move = turn_moves[move_index]       # Move is chosen between valid option
 
-        #print("MY MOVE: ", move)
-        if move == 'N':       # North
+        # Adjust to select the correct move
+        if move == 'N':         # North
             self.new_coord[0] -= 1
-        elif move == 'E':     # East
+        elif move == 'E':       # East
             self.new_coord[1] += 1
-        elif move == 'S':     # South
+        elif move == 'S':       # South
             self.new_coord[0] += 1
-        else:               # West
+        else:                   # West
             self.new_coord[1] -= 1
 
         # Verify that ant is in bounds:
         if self.new_coord[0] < 0 or self.new_coord[0] > self.lim_coord[0]\
                 or self.new_coord[1] < 0 or self.new_coord[1] > self.lim_coord[1]:
-            #print("{} Out of bounds!".format(self.new_coord))
-            self.new_coord[0] = self.old_coord[0]       # Reset coordinates
+            # Reset coordinates
+            self.new_coord[0] = self.old_coord[0]
             self.new_coord[1] = self.old_coord[1]
 
 
-        #print("Ant Move Old: {} \t New: {}".format(self.old_coord, self.new_coord))
-
-
-class Field: # This may be a maze later on.
-    def __init__(self, length=5, width=5, num_ants=1):          # Generic set to 5x5
+"""
+Field Class
+"""
+class Field:
+    def __init__(self, length=5, width=5, num_ants=1):
+        """
+        Initialize the environment field and the ph field, ant colony as well. Generic set to 5x5 with 1 ant.
+        :param length: Integer height of the plot.
+        :param width: Integer width of the plot.
+        :param num_ants: Integer number of ants.
+        """
         self.length = length                                    # Length of field
         self.width = width                                      # Width of field
         self.colony = [0, 0]                                    # Top left corner
@@ -300,97 +341,88 @@ class Field: # This may be a maze later on.
         self.ph_env = np.zeros((self.length, self.width))       # Pheromone environment
         self.env = np.zeros((self.length, self.width))          # Environment for ants and food
         np.add.at(self.env, tuple(zip(*walls.blocks)), 4)       # Vectorized add 4 to all walls
-        self.env[self.colony[0]][self.colony[1]] = 4
-        self.env[self.food_coord[0]][self.food_coord[1]] = 4
+        self.env[self.colony[0]][self.colony[1]] = 4            # Add 4 to colony coordinate location
+        self.env[self.food_coord[0]][self.food_coord[1]] = 4    # Add 4 to food coordinate location
         self.num_ants = num_ants
         self.ant_colony = [Ants(ant_num, self.length, self.width, self.colony) for ant_num in range(num_ants)]
+
+        # Update all the ants in the colony
         for ant in self.ant_colony:
             self.env[ant.new_coord[0]][ant.new_coord[1]] = 1
-        display_env_ph(self.env, self.ph_env, self.length, self.width, self.food_collected, self.num_ants, step=0)   # Show initial State
+
+        # Display the initial state of the field and ph environment
+        display_env_ph(self.env, self.ph_env, self.length, self.width, self.food_collected, self.num_ants, step=0)
 
     def time(self, step):
+        """
+        At every time interval, all ants must update their moves and pheromones will decay.
+        :param step: Integer current steps.
+        :return: N/A
+        """
+        # For all the ants in the colony
         for ant in self.ant_colony:
-            #print(len(self.ant_colony))
-            ant.make_move(self.ph_env, self.food_coord)
+            ant.make_move(self.ph_env, self.food_coord)         # Move each of the ants
+            self.env[ant.new_coord[0]][ant.new_coord[1]] += 1   # Ant moved to here, update the environment
+            self.env[ant.old_coord[0]][ant.old_coord[1]] -= 1   # This ant is no longer here, update environment
 
-            self.env[ant.new_coord[0]][ant.new_coord[1]] += 1    # Ant moved to here
-            #print(self.env)
-            self.env[ant.old_coord[0]][ant.old_coord[1]] -= 1    # This ant is no longer here...
-            #print(self.env)
-            #print("old {},\t new {}".format(ant.old_coord, ant.new_coord))
-            '''
-            # Only pheromone_drop phermones if have food...
-            if ant.has_food:
-                self.ph_env[ant.new_coord[0]][ant.new_coord[1]] += ant.pheromone_drop   # pheromone_drop pheromone
-            '''
-
-            if ant.new_coord[0] == self.food_coord[0] and ant.new_coord[1] == self.food_coord[1]:   # Match food coords
+            # Check if the new ant coordinate is a food coordinate
+            if ant.new_coord[0] == self.food_coord[0] and ant.new_coord[1] == self.food_coord[1]:
                 ant.has_food = True     # Let ant know it has food and to head home.
-                #print("\nANT HAS FOOD!!\n")
-                #ant.pheromone_drop = ant.pheromone_drop*2   # Double ph drop
-                self.ph_env[ant.new_coord[0]][ant.new_coord[1]] = ant.pheromone_drop
+                self.ph_env[ant.new_coord[0]][ant.new_coord[1]] = ant.pheromone_drop    # Drop pheromones on ph env
 
-            if ant.has_food and ant.new_coord[0] == self.colony[0] and ant.new_coord[1] == self.colony[1]:  # Match colony coords with food
-                if ant.pheromone_drop >= 2:  # and ant.pheromone_drop % 2 == 1:
-                    ant.pheromone_drop -= 2     # Drop pheromones on home base too.
-                    self.ph_env[ant.new_coord[0]][ant.new_coord[1]] = ant.pheromone_drop  # Drop pheromone
-                ant.has_food = False    # Deposited the food. Head out again.
-                ant.pheromone_drop = int((self.length + self.width)*3)  # The initial pheromone
-                #print("\nFOOD DEPOSITED!!\n")
-                self.food_collected += 1
-                if self.food_collected % 5 == 0:    # Every 5 pieces of food another ant is made.
-                    #print("Num Ants: {} \t\t len colony: {}".format(self.num_ants, len (self.ant_colony)))
-                    self.num_ants += 1
+            # Check if ant has food and if it's reached the colony
+            if ant.has_food and ant.new_coord[0] == self.colony[0] and ant.new_coord[1] == self.colony[1]:
+                if ant.pheromone_drop >= 2:     # If pheromone is greater than or equal to 2
+                    ant.pheromone_drop -= 2     # Lower pheromone drop
+                    # Drop pheromones on home base too
+                    self.ph_env[ant.new_coord[0]][ant.new_coord[1]] = ant.pheromone_drop
+
+                ant.has_food = False                                        # Deposited the food. Head out again.
+                ant.pheromone_drop = int((self.length + self.width)*3)      # Reset the initial pheromone
+                self.food_collected += 1                                    # Update food collection
+
+                # Every 5 pieces of food add another ant
+                if self.food_collected % 5 == 0:
+                    self.num_ants += 1                  # Add another ant
                     self.ant_colony.append(Ants(self.num_ants, self.length, self.width, self.colony))
-                    #print("Num Ants: {} \t\t len colony: {}".format(self.num_ants, len(self.ant_colony)))
-                #ant.pheromone_drop = ant.pheromone_drop / 2  # Return ph drop to normal
 
             # Only drop phermones if have food...
             if ant.has_food:
                 # Decay pheromones on the way home
-                if ant.pheromone_drop >= 2: # and ant.pheromone_drop % 2 == 1:
-                    ant.pheromone_drop -= 2
+                if ant.pheromone_drop >= 2:
+                    ant.pheromone_drop -= 2     # Reduce the pheromone drop by 2
 
-                if ant.pheromone_drop < 0:   # if negative, then set the old coordinates to negative ph
-                    if abs(ant.pheromone_drop) == self.ph_env[ant.new_coord[0]][ant.new_coord[1]]:
-                        self.ph_env[ant.old_coord[0]][ant.old_coord[1]] = ant.pheromone_drop    # old coords BAD
-                    ant.pheromone_drop = ant.pheromone_drop * -1    # switch back to positive
-
-                if ant.pheromone_drop > int(self.length + self.width / 2):  # only drop if still relevant trail
-                    self.ph_env[ant.new_coord[0]][ant.new_coord[1]] = ant.pheromone_drop  # Drop pheromone
-                #if self.ph_env[ant.new_coord[0]][ant.new_coord[1]] == 0:    # if zero
-                #    self.ph_env[ant.new_coord[0]][ant.new_coord[1]] = ant.pheromone_drop   # Drop pheromone
-                #else:
-                #    self.ph_env[ant.new_coord[0]][ant.new_coord[1]] = ant.pheromone_drop    # add minor chunk to it - loop elimination?
-
-
-
+                # Only drop if still relevant trail, pheromones greater than average of length and width
+                if ant.pheromone_drop > int(self.length + self.width / 2):
+                    self.ph_env[ant.new_coord[0]][ant.new_coord[1]] = ant.pheromone_drop  # Update pheromones
 
             # Need to manually update the old coordinates or else it just points to new coords
             ant.old_coord[0] = ant.new_coord[0]     # Update the old coordinates
             ant.old_coord[1] = ant.new_coord[1]     # Update the old coordinates
 
-            if self.env[self.colony[0]][self.colony[1]] != 4:  # Prevent colony from changing value. It is set to 4 like food.
+            # Prevent colony from changing value. It is set to 4 like food.
+            if self.env[self.colony[0]][self.colony[1]] != 4:
                 self.env[self.colony[0]][self.colony[1]] = 4
 
         # Reduce all pheromones by 1
         sub_ind = np.where(self.ph_env > 0)
         self.ph_env[sub_ind] -= 1     # Subtract 1 from each of these indexes
-        # Increase negatives by 1:
-        add_ind = np.where(self.ph_env < 0)
-        self.ph_env[add_ind] += 1  # Add 1 to each of these indexes
 
-        #print(self.env, "\n*****************")     # Show env after the ants have moved.
-        print(self.ph_env, "\n", sub_ind, "\n-----------------------------")  # Show env after the ants have moved.
+        # Call the display environments function
         display_env_ph(self.env, self.ph_env, self.length, self.width, self.food_collected, self.num_ants, step)
+
+        # Error Check
+        #print(self.env, "\n*****************")                                # Show env after the ants have moved.
+        #print(self.ph_env, "\n", sub_ind, "\n-----------------------------")  # Show ph env after the ants have moved.
 
 
 if __name__ == "__main__":
-    field = Field(LENGTH, WIDTH, NUM_ANTS)#10, 10, 65)        # Field of dimension y=12, x=10. Number of ants = 5
-    #print("The Environment:")
-    #print(field.env)
+    # Initialize a field object
+    field = Field(LENGTH, WIDTH, NUM_ANTS)
 
-    for i in range(500):             # Ants get to move 30 times
-        field.time(i)
+    # Loop through a time span of 500 steps
+    for i in range(500):
+        field.time(i)   # Update the field with every time step
 
-    plt.show()      # Keep the image around
+    # Keep the image around
+    plt.show()
