@@ -2,7 +2,10 @@
 Nature inspired AI algorithm for path finding optimization. 
 The idea behind this project is that ants are able to:
 1. Locate "food" in their environment.
+    - Ants go out and conduct a local search in the physical environment
 2. Drop "pheremones" for other ants to follow.
+    - Only the best ants will drop pheromones. IE, the ants that found food will drop pheromones for others.
+    - The higher the pheromones, the greater probability of going in that direction.
 3. Then create the fastest path between the colony and the "food" source.
 
 ## Set Up:
@@ -15,7 +18,8 @@ The idea behind this project is that ants are able to:
     * `pip install numpy`
     * `pip install matplotlib`
     
-    
+## How to run: 
+    * `python Ants.py`
     
 ## Resources:
 * Dynamic Matplotlib
@@ -24,5 +28,15 @@ The idea behind this project is that ants are able to:
     - https://stackoverflow.com/questions/38973868/adjusting-gridlines-and-ticks-in-matplotlib-imshow
 * Multiple Charts
     - https://stackoverflow.com/questions/46615554/how-to-display-multiple-images-in-one-figure-correctly    
-    
+* Update pheromones with np where
+    - https://stackoverflow.com/questions/44810755/subtracting-a-number-from-an-array-if-condition-is-met-python
+* Random weighted choice
+    - https://pynative.com/python-random-choice/
+* Vectorized add 4 to all walls 
+    - https://stackoverflow.com/questions/55176269/list-of-xy-coordinates-to-matrix
+    - https://docs.scipy.org/doc/numpy/reference/generated/numpy.ufunc.at.html
+* Select random coordinates
+    - https://docs.scipy.org/doc/numpy-1.15.1/reference/generated/numpy.random.randint.html
+* Convert to list
+    - https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.tolist.html
     
